@@ -1,14 +1,46 @@
 services:
   db:
     image: postgres:16
+    container_name: cotacoes_db
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${DB_PORT}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  etl:
+    build: .
+    profiles: ["etl"]
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  dashboard:
+    build: .
+    profiles: ["dashboard"]
+    command: python -m streamlit run dashboard.py --server.address=0.0.0.0 --server.port=8501 --server.headless=true
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+    ports:
+      - "127.0.0.1:8501:8501"
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:

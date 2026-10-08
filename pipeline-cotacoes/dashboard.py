@@ -75,14 +75,14 @@ for col, (_, linha) in zip(colunas, ultimos.iterrows()):
 st.subheader("Evolução da cotação de compra")
 st.plotly_chart(
     px.line(filtrado, x="data", y="compra", color="par", markers=True),
-    use_container_width=True,
+    width="stretch",
 )
 
 st.subheader("Variação diária (%)")
 st.plotly_chart(
     px.bar(filtrado, x="data", y="variacao", color="par", barmode="group"),
-    use_container_width=True,
+    width="stretch",
 )
 
 with st.expander("Ver dados"):
-    st.dataframe(filtrado, use_container_width=True)
+    st.dataframe(filtrado, width="stretch")
